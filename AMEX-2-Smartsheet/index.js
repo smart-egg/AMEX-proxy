@@ -49,7 +49,7 @@ module.exports = async function (context, req) {
             var d = new Date();
             var warning = {
                 "timestamp": ISODateString(d),
-                "row" : 1,
+                "row" : rows.length,
                 "type": "Warning",
                 "message": "Unexpected end of file. Expected '1-x of y Transazioni', found '" + last_row + "'."
             }
@@ -61,7 +61,7 @@ module.exports = async function (context, req) {
                 var d = new Date();
                 var warning = {
                     "timestamp": ISODateString(d),
-                    "row" : 1,
+                    "row" : rows.length,
                     "type": "Warning",
                     "message": "Possible incomplete file. Expecting " + last_row.charAt(7) + " transactions but report contains " + last_row.charAt(2) + "."
                 }
@@ -72,7 +72,7 @@ module.exports = async function (context, req) {
                 var d = new Date();
                 var info = {
                     "timestamp": ISODateString(d),
-                    "row" : 1,
+                    "row" : rows.length,
                     "type": "Information",
                     "message": "Expecting " + last_row.charAt(2) + " transactions."
                 }
@@ -101,8 +101,108 @@ module.exports = async function (context, req) {
 
         body["tx_count_found"] = date_separator1.length / 2;
         for(var i = 0; i < date_separator1.length - 1; i += 2){
-            for(var j = date_separator1[i]; j < date_separator1[i + 2]; j++){
-                rows[j].split
+            j = date_separator1[i];
+            var arr1 = rows[j].split(" ");
+            var d = new Date();
+            var date = d.getUTCFullYear() + '-' + getMonthFromString(arr1[1], months) + '-' + arr1[0];
+            var amount_text = rows[j + 4].split(" ")[0];
+            var amount_text1 = amount_text.replace(/./g, "");
+            var amount_text2 = amount_text1.replace(/,/g, ".");
+            var amount = parseFloat(amount_text2);
+            var type = "UNDEFINED";
+            if(amount === NaN){
+                body["warning_count"] ++;
+                var d = new Date();
+                var warning = {
+                    "timestamp": ISODateString(d),
+                    "row" : j + 5,
+                    "type": "Warning",
+                    "message": "Expected amount but found '" + rows[j + 4] + "'."
+                }
+                body["warnings"].push(warning);
+            }else{
+                if(amount < 0){
+                    type = "CREDIT";
+                    body["tx_count_credit"] ++;
+                }else{
+                    type = "DEBIT";
+                    body["tx_count_debit"] ++;
+                }
+            }
+
+            var transaction = {
+                "type": type,
+                "date": date,
+                "description": rows[j + 2],
+                "amount": amount,
+            }
+
+            var payee = "";
+            if(rows[j + 5] === "DESCRIZIONE"){
+                payee = rows[j + 6];
+            }else{
+                body["warning_count"] ++;
+                var d = new Date();
+                var warning = {
+                    "timestamp": ISODateString(d),
+                    "row" : j + 6,
+                    "type": "Warning",
+                    "message": "Expected DESCRIZIONE but found '" + rows[j + 5] + "'."
+                }
+                body["warnings"].push(warning);
+            }
+
+            var record_date = "";
+            if(rows[j + 8] === "DATA DELLA CONTABILIZZAZIONE"){
+                arr1 = rows[j + 9].split(" ");
+                record_date = arr1[2] + '-' + getMonthFromString(arr1[1], months) + '-' + arr1[0];
+                transaction["record_date"] = record_date;
+            }else{
+                body["transactions"].push(transaction);
+                continue;
+            }
+
+            var transaction_id = "";
+            if(rows[j + 11] === "NUMERO DI RIFERIMENTO"){
+                transaction_id = rows[j + 12];
+                transaction["transaction_id"] = transaction_id;
+            }else{
+                body["transactions"].push(transaction);
+                continue;
+            }
+
+            var currency_amount = 0;
+            var currency_id = "USD";
+            if(rows[j + 14] === "DETTAGLI SULLA VALUTA ESTERA"){
+                arr1 = rows[j + 16].split(" ");
+                currency_amount = parseFloat(arr1[0].replace(/,/g, ""));
+                currency_id = arr1[1];
+                transaction["currency_amount"] = currency_amount;
+                transaction["currency_id"] = currency_id;
+            }else{
+                body["transactions"].push(transaction);
+                continue;
+            }
+            
+            var fx_commission = 0;
+            var fx_rate = 0.0;
+            if(rows[j + 17] === "Commissione"){
+                arr1 = rows[j + 18].split(" ");
+                amount_text1 = arr1[0].replace(/./g, "");
+                amount_text2 = amount_text1.replace(/,/g, ".");
+                fx_commission = parseFloat(amount_text2);
+                transaction["fx_commission"] = fx_commission;
+                if(rows[j + 19] === "Tasso di cambio"){
+                    fx_rate = parseFloat(rows[j + 20]).toFixed(6);
+                    transaction["fx_rate"] = fx_rate;
+                }else{
+                    body["transactions"].push(transaction);
+                    continue;
+                }
+                
+            }else{
+                body["transactions"].push(transaction);
+                continue;
             }
         }
 
