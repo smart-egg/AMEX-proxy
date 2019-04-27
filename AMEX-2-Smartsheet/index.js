@@ -14,6 +14,9 @@ module.exports = async function (context, req) {
             "smartsheet_id": smartsheet_id,
             "account_name": account_name,
         }
+        var rows = contents.split(/\r?\n/);
+        body["rows"] = rows;
+        console.log(rows);
         context.res = {
             // status: 200, /* Defaults to 200 */
             body: body
