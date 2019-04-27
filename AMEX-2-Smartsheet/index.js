@@ -110,7 +110,7 @@ module.exports = async function (context, req) {
             var amount_text2 = amount_text1.replace(/,/g, ".");
             var amount = parseFloat(amount_text2);
             var type = "UNDEFINED";
-            if(amount === NaN){
+            if(amount === null){
                 body["warning_count"] ++;
                 var d = new Date();
                 var warning = {
