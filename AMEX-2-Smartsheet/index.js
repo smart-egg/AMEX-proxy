@@ -14,9 +14,25 @@ module.exports = async function (context, req) {
             "smartsheet_id": smartsheet_id,
             "account_name": account_name,
         }
+        body["warning_count"] = 0;
+        body["warnings"] = [];
+        body["error_count"] = 0;
+        body["errors"] = [];
         var rows = contents.split(/\r?\n/);
-        body["rows"] = rows;
-        console.log(rows);
+        if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
+            body["warning_count"] ++;
+            var d = new Date();
+            var warning = {
+                "timestamp": ISODateString(d),
+                "row" : 1,
+                "type": "Warning",
+                "message": "Unexpected beginning of file. Expected 'Cosa sono le transazioni contabilizzate ?', found " + "'" + rows[0] + "'."
+            }
+            body["warnings"].push(warning);
+        }
+        // rows.forEach(function(element) {
+
+        // });    
         context.res = {
             // status: 200, /* Defaults to 200 */
             body: body
@@ -29,3 +45,12 @@ module.exports = async function (context, req) {
         };
     }
 };
+function ISODateString(d){
+    function pad(n){return n<10 ? '0'+n : n}
+    return d.getUTCFullYear()+'-'
+         + pad(d.getUTCMonth()+1)+'-'
+         + pad(d.getUTCDate())+'T'
+         + pad(d.getUTCHours())+':'
+         + pad(d.getUTCMinutes())+':'
+         + pad(d.getUTCSeconds())+'Z'}
+   
