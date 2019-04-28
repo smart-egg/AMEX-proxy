@@ -1,6 +1,6 @@
 module.exports = async function (context, req) {
-    context.log('JavaScript HTTP trigger function processed a request.');
-
+    
+    
     var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
     var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
     var delimiters_map = new Map(row_delimiters);
@@ -11,6 +11,8 @@ module.exports = async function (context, req) {
         var contents = b.toString();
         var smartsheet_id = req.body.smartsheet_id;
         var account_name = req.body.account_name;
+
+        //format response body
         var body = {
             "status": 200,
             "message": "success",
@@ -187,7 +189,8 @@ module.exports = async function (context, req) {
 
         credit_amount *= -1;
         var client = require('smartsheet');
-        var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
+        //var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
+        var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
 
         var column = [
             {
