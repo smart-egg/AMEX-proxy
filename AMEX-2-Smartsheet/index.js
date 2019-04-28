@@ -100,7 +100,7 @@ module.exports = async function (context, req) {
             var arr = start_pattern.exec(rows[row_index]);
             if(arr !== null){
                 body["tx_count_found"] ++;
-                if(isEmpty(transaction)){
+                if(!isEmpty(transaction)){
                     body["transactions"].push(transaction);
                     transaction = {};
                 }
@@ -135,7 +135,7 @@ module.exports = async function (context, req) {
                     var d = new Date();
                     var warning = {
                         "timestamp": ISODateString(d),
-                        "row" : row_index + 1,
+                        "row" : row_index + 2,
                         "type": "Warning",
                         "message": "Expected DESCRIZIONE but found '" + rows[row_index + 1] + "'."
                     }
