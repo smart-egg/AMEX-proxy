@@ -27,6 +27,9 @@ module.exports = async function (context, req) {
         body["info_count"] = 0;
         body["infos"] = [];
         
+        body["tx_count_expected"] = 0;
+        body["tx_count_reported"] = 0;
+
         var rows = contents.split(/\r?\n/);
         if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
             body["warning_count"] ++;
@@ -56,6 +59,8 @@ module.exports = async function (context, req) {
             body["warnings"].push(warning);
         }
         else{
+            body["tx_count_expected"] = arr[2];
+            body["tx_count_reported"] = arr[1];
             if(arr[1] !== arr[2]){
                 body["warning_count"] ++;
                 var d = new Date();
@@ -81,8 +86,7 @@ module.exports = async function (context, req) {
         }
         
         
-        body["tx_count_expected"] = arr[2];
-        body["tx_count_reported"] = arr[1];
+        
         body["tx_count_found"] = 0;
         body["tx_count_credit"] = 0;
         body["tx_count_debit"] = 0;
