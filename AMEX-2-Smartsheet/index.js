@@ -166,7 +166,7 @@ module.exports = async function (context, req) {
                         break;
                     }
                     case "fx_commission": 
-                        trasaction["fx_commission"] = amountFormatter(rows[++row_index]);
+                        transaction["fx_commission"] = amountFormatter(rows[++row_index]);
                         break;
                     case "fx_rate":
                         transaction["fx_rate"] = parseFloat(rows[++row_index]).toFixed(6);
