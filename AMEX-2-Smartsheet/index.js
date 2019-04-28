@@ -286,6 +286,7 @@ module.exports = async function (context, req) {
         smartsheet.sheets.getColumns(options)
         .then(function(columnList) {
             context.log(columnList);
+            context.log("getting column");
             var col_info = columnList["data"];
             var col_info_map_array = [];
             col_info.forEach(element => {
