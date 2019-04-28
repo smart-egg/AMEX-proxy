@@ -190,7 +190,7 @@ module.exports = async function (context, req) {
         var client = require('smartsheet');
         //var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
         var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
-
+        context.log(smartsheet);
         var column = [
             {
             "title": "Conto",
@@ -264,8 +264,10 @@ module.exports = async function (context, req) {
         smartsheet.sheets.addColumn(options)
             .then(function(newColumns) {
                 context.log(newColumns);
+                context.log("done");
             })
             .catch(function(error) {
+                context.log("error");
                 context.log(error);
             });
 
@@ -277,7 +279,7 @@ module.exports = async function (context, req) {
             //var transactions = body["transactions"];
             
             var transactions = body["transactions"];
-            context.log(transaction);
+            context.log("added row");
             var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
             var col_map = new Map(map_array1);
 
