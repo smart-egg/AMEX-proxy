@@ -160,8 +160,9 @@ module.exports = async function (context, req) {
                         row_index++;
                         break;
                     case "currency_amount": {
+                        transaction["currency_amount"] = "xxxxx";
                         var arr = rows[++row_index].split(" ");
-                        transaction["currency_amount"] = parseFloat(arr[0]);
+                        //transaction["currency_amount"] = parseFloat(arr[0]);
                         transaction["currency_id"] = arr[1];
                         break;
                     }
