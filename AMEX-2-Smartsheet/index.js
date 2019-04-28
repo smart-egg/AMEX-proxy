@@ -4,7 +4,7 @@ module.exports = async function (context, req) {
     var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
     var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
     var delimiters_map = new Map(row_delimiters);
-
+    
     if (req.body && req.body.filename && req.body.contents && req.body.smartsheet_id && req.body.account_name) {
         var filename = req.body.filename;
         var b = new Buffer(req.body.contents, 'base64')
@@ -29,7 +29,8 @@ module.exports = async function (context, req) {
         
         body["tx_count_expected"] = 0;
         body["tx_count_reported"] = 0;
-
+        var debit_amount = 0;
+        var credit_amount = 0;
         var rows = contents.split(/\r?\n/);
         if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
             body["warning_count"] ++;
@@ -128,9 +129,11 @@ module.exports = async function (context, req) {
                 if(amount >= 0){
                     transaction["type"] = "DEBIT";
                     body["tx_count_debit"] ++;
+                    debit_amount += transaction["amount"];
                 }else{
                     transaction["type"] = "CREDIT";
                     body["tx_count_credit"] ++;
+                    credit_amount += transaction["amount"];
                 }
 
                 if(rows[row_index + 1] !== "DESCRIZIONE"){
@@ -182,7 +185,199 @@ module.exports = async function (context, req) {
             transaction = {};
         }
 
+        credit_amount *= -1;
+        var client = require('smartsheet');
+        var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
+
+        var column = [
+            {
+            "title": "Conto",
+            "type": "TEXT_NUMBER",
+            "index": 1
+            },
+            {
+            "title": "Data",
+            "type": "DATE",
+            "index": 1
+            },
+            {
+                "title": "Descrizione banca",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Descrizione",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Entrate",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Uscite",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Entrate in valuta",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Uscite in valuta",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Valuta",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Commissione",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "Tasso di cambio",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+            {
+                "title": "ID transazione",
+                "type": "TEXT_NUMBER",
+                "index": 1
+            },
+        ];
         
+        // Set options
+        var options = {
+            sheetId: smartsheet_id,
+            body: column
+            };
+        
+        // Add columns to the sheet
+        smartsheet.sheets.addColumn(options)
+            .then(function(newColumns) {
+                console.log(newColumns);
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+
+            var options = {
+                sheetId: smartsheet_id
+            };
+            
+            var rows = [];
+            //var transactions = body["transactions"];
+            
+            var transactions = body["transactions"];
+            var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
+            var col_map = new Map(map_array1);
+
+        smartsheet.sheets.getColumns(options)
+        .then(function(columnList) {
+            console.log(columnList);
+            var col_info = columnList["data"];
+            var col_info_map_array = [];
+            col_info.forEach(element => {
+                col_info_map_array.push([element.title, element.id]);
+            });
+            var col_info_map = new Map(col_info_map_array);
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; //January is 0!
+
+            var yyyy = today.getFullYear();
+            if (dd < 10) {
+            dd = '0' + dd;
+            } 
+            if (mm < 10) {
+            mm = '0' + mm;
+            } 
+            var today = yyyy + '-' + mm + '-' + dd;
+            //var debit_amount = 1330;
+            //var credit_amount = 1330;
+            //var account_name = "Carta AMEX";
+            var row = {
+                "toTop": true,
+                "cells": [
+                    {
+                        "columnId": col_info[0].id,
+                        "value": "Summary"
+                    },
+                    {
+                        "columnId": col_info_map.get("Data"),
+                        "value": today
+                    },
+                    {
+                        "columnId": col_info_map.get("Descrizione banca"),
+                        "value": "Summary row"
+                    },
+                    {
+                        "columnId": col_info_map.get("Descrizione"),
+                        "value": "Expected " + body["tx_count_expected"] + ", reported " + body["tx_count_reported"]
+                        //"value": "Expected 8, reported 7"
+                    },
+                    {
+                        "columnId": col_info_map.get("Uscite"),
+                        "value": debit_amount
+                    },
+                    {
+                        "columnId": col_info_map.get("Entrate in valuta"),
+                        "value": credit_amount
+                    },
+                ]
+            }
+            rows.push(row);
+            transactions.forEach(element => {
+                row = {};
+                row["toTop"] = true;
+                row["cells"] = [];
+                row["cells"].push({
+                    "columnId": col_info_map.get("Conto"),
+                    "value": body["account_name"]
+                    //"value": account_name
+                })
+                col_info_map_array.forEach((col, index, arr) => {
+                    if(col_map.get(col[0]) !== undefined){
+                        if(element.type === "DEBIT" && col[0] === "Entrate in valuta"){
+                            return;
+                        }else if(element.type === "CREDIT" && col[0] === "Uscite"){
+                            element.amount *= -1;
+                            return;
+                        }
+                        var cell = {
+                            "columnId": col[1],
+                            "value": element[col_map.get(col[0])]
+                        }
+                        row["cells"].push(cell);
+                    }
+                });
+                console.log(rows);
+                rows.push(row);
+            });
+        var options = {
+            sheetId: 5744708929513348,
+            body: rows
+            };
+            
+            // Add rows to sheet
+            smartsheet.sheets.addRows(options)
+            .then(function(newRows) {
+                console.log(newRows);
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+        })
+        .catch(function(error) {
+            console.log(error);
+        });
+
         context.res = {
             // status: 200, /* Defaults to 200 */
             body: body
