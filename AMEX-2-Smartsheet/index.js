@@ -100,7 +100,7 @@ module.exports = async function (context, req) {
             var arr = start_pattern.exec(rows[row_index]);
             if(arr !== null){
                 body["tx_count_found"] ++;
-                if(transaction.length > 0){
+                if(isEmpty(transaction)){
                     body["transactions"].push(transaction);
                     transaction = {};
                 }
@@ -208,4 +208,11 @@ function amountFormatter(amount){
     amount_text1 = arr1[0].replace(/\./g, "");
     amount_text2 = amount_text1.replace(/,/g, ".");
     return parseFloat(amount_text2);
+}
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
 }
