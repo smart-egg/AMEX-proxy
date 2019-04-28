@@ -137,7 +137,7 @@ module.exports = async function (context, req) {
                         "timestamp": ISODateString(d),
                         "row" : row_index + 2,
                         "type": "Warning",
-                        "message": "Expected DESCRIZIONE but found '" + rows[j + 5] + "'."
+                        "message": "Expected DESCRIZIONE but found '" + rows[row_index + 2] + "'."
                     }
                     body["warnings"].push(warning);
                 }
