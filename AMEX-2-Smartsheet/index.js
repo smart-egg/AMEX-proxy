@@ -1,4 +1,4 @@
-module.exports = async function (context, req) {
+module.exports = function (context, req) {
 
     var client = require('smartsheet');
     var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
@@ -183,7 +183,7 @@ module.exports = async function (context, req) {
         ];
         var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
         var col_map = new Map(map_array1);
-    
+    context.log("test1");
     smartsheet.sheets.getColumns(options)
     .then(function(columnList) {
         context.log("get column success");
