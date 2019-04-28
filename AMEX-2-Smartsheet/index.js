@@ -259,7 +259,7 @@ module.exports = async function (context, req) {
             sheetId: smartsheet_id,
             body: column
             };
-        
+        context.log(options);
         // Add columns to the sheet
         smartsheet.sheets.addColumn(options)
             .then(function(newColumns) {
