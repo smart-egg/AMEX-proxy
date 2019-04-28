@@ -2,7 +2,7 @@ module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
     var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
-    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Spese all estero", "currency_amount"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
+    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
     var delimiters_map = new Map(row_delimiters);
 
     if (req.body && req.body.filename && req.body.contents && req.body.smartsheet_id && req.body.account_name) {
@@ -158,13 +158,10 @@ module.exports = async function (context, req) {
                     case "transaction_id":
                         transaction["transaction_id"] = rows[++row_index];
                         break;
-                    case "currency_info":
-                        row_index++;
-                        break;
-                    case "currency_amount": {
-                        transaction["currency_amount"] = "xxxxx";
-                        var arr = rows[++row_index].split(" ");
-                        //transaction["currency_amount"] = parseFloat(arr[0]);
+                    case "currency_info":{
+                        row_index += 2;
+                        var arr = rows[row_index].split(" ");
+                        transaction["currency_amount"] = parseFloat(arr[0]);
                         transaction["currency_id"] = arr[1];
                         break;
                     }
