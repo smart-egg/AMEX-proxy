@@ -27,9 +27,6 @@ module.exports = async function (context, req) {
         body["info_count"] = 0;
         body["infos"] = [];
         
-        contents = contents.replace(/’/g, " ");
-        console.log(contents);
-        body["infos"] = contents;
         var rows = contents.split(/\r?\n/);
         if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
             body["warning_count"] ++;
