@@ -3,83 +3,83 @@ module.exports = async function (context, req) {
     var client = require('smartsheet');
     var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
     var smartsheet_id = 5744708929513348;
-    var column = [
-        {
-          "title": "Conto",
-          "type": "TEXT_NUMBER",
-          "index": 1
-        },
-        {
-          "title": "Data",
-          "type": "DATE",
-          "index": 1
-        },
-        {
-            "title": "Descrizione banca",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Descrizione",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Entrate",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Uscite",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Entrate in valuta",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Uscite in valuta",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Valuta",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Commissione",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "Tasso di cambio",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-        {
-            "title": "ID transazione",
-            "type": "TEXT_NUMBER",
-            "index": 1
-        },
-      ];
+    // var column = [
+    //     {
+    //       "title": "Conto",
+    //       "type": "TEXT_NUMBER",
+    //       "index": 1
+    //     },
+    //     {
+    //       "title": "Data",
+    //       "type": "DATE",
+    //       "index": 1
+    //     },
+    //     {
+    //         "title": "Descrizione banca",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Descrizione",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Entrate",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Uscite",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Entrate in valuta",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Uscite in valuta",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Valuta",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Commissione",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "Tasso di cambio",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //     {
+    //         "title": "ID transazione",
+    //         "type": "TEXT_NUMBER",
+    //         "index": 1
+    //     },
+    //   ];
       
-      // Set options
-      var options = {
-        sheetId: smartsheet_id,
-        body: column
-        };
+    //   // Set options
+    //   var options = {
+    //     sheetId: smartsheet_id,
+    //     body: column
+    //     };
       
-      // Add columns to the sheet
-      smartsheet.sheets.addColumn(options)
-        .then(function(newColumns) {
-            context.log("add column success");
-        })
-        .catch(function(error) {
-            context.log("add column error");
-        });
+    //   // Add columns to the sheet
+    //   smartsheet.sheets.addColumn(options)
+    //     .then(function(newColumns) {
+    //         context.log("add column success");
+    //     })
+    //     .catch(function(error) {
+    //         context.log("add column error");
+    //     });
     
         var options = {
             sheetId: smartsheet_id
