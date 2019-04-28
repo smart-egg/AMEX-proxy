@@ -124,10 +124,10 @@ module.exports = async function (context, req) {
                 transaction["amount"] = amount;
                 if(amount >= 0){
                     transaction["type"] = "DEBIT";
-                    transaction["tx_count_debit"] ++;
+                    body["tx_count_debit"] ++;
                 }else{
                     transaction["type"] = "CREDIT";
-                    transaction["tx_count_credit"] ++;
+                    body["tx_count_credit"] ++;
                 }
 
                 if(rows[row_index + 1] !== "DESCRIZIONE"){
@@ -135,9 +135,9 @@ module.exports = async function (context, req) {
                     var d = new Date();
                     var warning = {
                         "timestamp": ISODateString(d),
-                        "row" : row_index + 2,
+                        "row" : row_index + 1,
                         "type": "Warning",
-                        "message": "Expected DESCRIZIONE but found '" + rows[row_index + 2] + "'."
+                        "message": "Expected DESCRIZIONE but found '" + rows[row_index + 1] + "'."
                     }
                     body["warnings"].push(warning);
                 }
