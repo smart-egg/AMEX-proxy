@@ -11,7 +11,7 @@ module.exports = async function (context, req) {
         var filename = req.body.filename;
         var b = new Buffer(req.body.contents, 'base64')
         var contents = b.toString();
-        var smartsheet_id = 5744708929513348;
+        var smartsheet_id = req.body.smartsheet_id;
         var account_name = req.body.account_name;
 
         //format response body
@@ -269,9 +269,11 @@ module.exports = async function (context, req) {
         // Add columns to the sheet
         smartsheet.sheets.addColumn(options)
         .then(function(newColumns) {
+            context.log("add column success");
             context.log(newColumns);
         })
         .catch(function(error) {
+            context.log("add column error");
             context.log(error);
         });
         // Set options
@@ -286,6 +288,7 @@ module.exports = async function (context, req) {
         // get columns from the sheet
         smartsheet.sheets.getColumns(options)
         .then(function(columnList) {
+            context.log("get column success");
             context.log(columnList);
             var col_info = columnList["data"];
             var col_info_map_array = [];
@@ -375,13 +378,16 @@ module.exports = async function (context, req) {
             // Add rows to sheet
             smartsheet.sheets.addRows(options)
             .then(function(newRows) {
+                context.log("add rows success");
                 context.log(newRows);
             })
             .catch(function(error) {
+                context.log("add rows error");
                 context.log(error);
             });
         })
         .catch(function(error) {
+            context.log("get column error");
             context.log(error);
         });
         context.res = {
