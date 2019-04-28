@@ -379,10 +379,10 @@ module.exports = async function (context, req) {
         .catch(function(error) {
             context.log(error);
         });
-
+        body["rows"] = rows;
         context.res = {
             // status: 200, /* Defaults to 200 */
-            body: body
+            body: body,
         };
     }
     else {
