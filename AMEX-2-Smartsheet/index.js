@@ -196,7 +196,6 @@ module.exports = async function (context, req) {
         var client = require('smartsheet');
         //var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
         var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
-        context.log(smartsheet);
         var column = [
             {
             "title": "Conto",
@@ -265,16 +264,13 @@ module.exports = async function (context, req) {
             sheetId: smartsheet_id,
             body: column
         };
-        context.log(options);
         // Add columns to the sheet
         smartsheet.sheets.addColumn(options)
         .then(function(newColumns) {
             context.log("add column success");
-            context.log(newColumns);
         })
         .catch(function(error) {
             context.log("add column error");
-            context.log(error);
         });
         // Set options
         var options = {
@@ -289,7 +285,6 @@ module.exports = async function (context, req) {
         smartsheet.sheets.getColumns(options)
         .then(function(columnList) {
             context.log("get column success");
-            context.log(columnList);
             var col_info = columnList["data"];
             var col_info_map_array = [];
             col_info.forEach(element => {
@@ -379,16 +374,13 @@ module.exports = async function (context, req) {
             smartsheet.sheets.addRows(options)
             .then(function(newRows) {
                 context.log("add rows success");
-                context.log(newRows);
             })
             .catch(function(error) {
                 context.log("add rows error");
-                context.log(error);
             });
         })
         .catch(function(error) {
             context.log("get column error");
-            context.log(error);
         });
         context.res = {
             // status: 200, /* Defaults to 200 */
