@@ -2,7 +2,7 @@ module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
     var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
-    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Spese all’estero", "currency_amount"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
+    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Spese all estero", "currency_amount"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
     var delimiters_map = new Map(row_delimiters);
 
     if (req.body && req.body.filename && req.body.contents && req.body.smartsheet_id && req.body.account_name) {
@@ -27,7 +27,7 @@ module.exports = async function (context, req) {
         body["info_count"] = 0;
         body["infos"] = [];
         
-        
+        contents = contents.replace(/’/g, " ");
         var rows = contents.split(/\r?\n/);
         if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
             body["warning_count"] ++;
