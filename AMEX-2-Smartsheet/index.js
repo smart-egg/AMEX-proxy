@@ -274,7 +274,7 @@ module.exports = async function (context, req) {
             var options = {
                 sheetId: smartsheet_id
             };
-            
+            context.log("added row");
             var rows = [];
             //var transactions = body["transactions"];
             
@@ -382,6 +382,7 @@ module.exports = async function (context, req) {
         })
         .catch(function(error) {
             context.log(error);
+            context.log("getting column");
         });
         body["rows"] = rows;
         context.res = {
