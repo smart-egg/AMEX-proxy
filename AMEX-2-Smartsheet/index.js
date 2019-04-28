@@ -187,7 +187,7 @@ module.exports = async function (context, req) {
 
         credit_amount *= -1;
         var client = require('smartsheet');
-        var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
+        var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
 
         var column = [
             {
@@ -361,7 +361,7 @@ module.exports = async function (context, req) {
                 rows.push(row);
             });
         var options = {
-            sheetId: 5744708929513348,
+            sheetId: smartsheet_id,
             body: rows
             };
             
