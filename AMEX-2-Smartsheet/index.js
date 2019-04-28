@@ -187,6 +187,9 @@ module.exports = async function (context, req) {
         }
 
         credit_amount *= -1;
+
+        /****************************************  smartsheet uploading  ****************************************************************/
+
         var client = require('smartsheet');
         //var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
         var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
@@ -258,35 +261,29 @@ module.exports = async function (context, req) {
         var options = {
             sheetId: smartsheet_id,
             body: column
-            };
+        };
         context.log(options);
         // Add columns to the sheet
         smartsheet.sheets.addColumn(options)
             .then(function(newColumns) {
                 context.log(newColumns);
-                context.log("done");
             })
             .catch(function(error) {
-                context.log("error");
                 context.log(error);
             });
 
-            var options = {
-                sheetId: smartsheet_id
-            };
-            context.log("added row");
-            var rows = [];
-            //var transactions = body["transactions"];
-            
-            var transactions = body["transactions"];
-            context.log("added row");
-            var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
-            var col_map = new Map(map_array1);
+        var options = {
+            sheetId: smartsheet_id
+        };
+        var rows = [];
+        var transactions = body["transactions"];
+        var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
+        var col_map = new Map(map_array1);
 
+        // get columns from the sheet
         smartsheet.sheets.getColumns(options)
         .then(function(columnList) {
             context.log(columnList);
-            context.log("getting column");
             var col_info = columnList["data"];
             var col_info_map_array = [];
             col_info.forEach(element => {
@@ -305,9 +302,7 @@ module.exports = async function (context, req) {
             mm = '0' + mm;
             } 
             var today = yyyy + '-' + mm + '-' + dd;
-            //var debit_amount = 1330;
-            //var credit_amount = 1330;
-            //var account_name = "Carta AMEX";
+
             var row = {
                 "toTop": true,
                 "cells": [
@@ -339,6 +334,7 @@ module.exports = async function (context, req) {
                 ]
             }
             rows.push(row);
+
             transactions.forEach(element => {
                 row = {};
                 row["toTop"] = true;
@@ -366,11 +362,11 @@ module.exports = async function (context, req) {
                 context.log(rows);
                 rows.push(row);
             });
-        var options = {
-            sheetId: smartsheet_id,
-            body: rows
+            var options = {
+                sheetId: smartsheet_id,
+                body: rows
             };
-            
+                
             // Add rows to sheet
             smartsheet.sheets.addRows(options)
             .then(function(newRows) {
@@ -382,9 +378,7 @@ module.exports = async function (context, req) {
         })
         .catch(function(error) {
             context.log(error);
-            context.log("getting column");
         });
-        body["rows"] = rows;
         context.res = {
             // status: 200, /* Defaults to 200 */
             body: body,
