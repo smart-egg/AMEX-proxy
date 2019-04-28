@@ -1,7 +1,9 @@
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
-    months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+    var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Spese all’estero", "currency_amount"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
+    var delimiters_map = new Map(row_delimiters);
 
     if (req.body && req.body.filename && req.body.contents && req.body.smartsheet_id && req.body.account_name) {
         var filename = req.body.filename;
@@ -41,10 +43,9 @@ module.exports = async function (context, req) {
         
         
         var last_row = rows[rows.length - 1];
-        var sample_last_row = "1-x of y Transazioni";
-        sample_last_row.replaceAt(2, last_row.charAt(2));
-        sample_last_row.replaceAt(7, last_row.charAt(7));
-        if(last_row !== sample_last_row){
+        var regex = /^1-([0-9]{1,3}) of ([0-9]{1,3}) Transazioni/g;
+        var arr = regex.exec(last_row);
+        if(arr === null){
             body["warning_count"] ++;
             var d = new Date();
             var warning = {
@@ -56,14 +57,14 @@ module.exports = async function (context, req) {
             body["warnings"].push(warning);
         }
         else{
-            if(last_row.charAt(2) !== last_row.charAt(7)){
+            if(arr[1] !== arr[2]){
                 body["warning_count"] ++;
                 var d = new Date();
                 var warning = {
                     "timestamp": ISODateString(d),
                     "row" : rows.length,
                     "type": "Warning",
-                    "message": "Possible incomplete file. Expecting " + last_row.charAt(7) + " transactions but report contains " + last_row.charAt(2) + "."
+                    "message": "Possible incomplete file. Expecting " + arr[2] + " transactions but report contains " + arr[1] + "."
                 }
                 body["warnings"].push(warning);
             }
@@ -74,138 +75,112 @@ module.exports = async function (context, req) {
                     "timestamp": ISODateString(d),
                     "row" : rows.length,
                     "type": "Information",
-                    "message": "Expecting " + last_row.charAt(2) + " transactions."
+                    "message": "Expecting " + arr[1] + " transactions."
                 }
                 body["infos"].push(info);
             }
         }
         
         
-        body["tx_count_expected"] = last_row.charAt(7);
-        body["tx_count_reported"] = last_row.charAt(2);
+        body["tx_count_expected"] = arr[2];
+        body["tx_count_reported"] = arr[1];
         body["tx_count_found"] = 0;
         body["tx_count_credit"] = 0;
         body["tx_count_debit"] = 0;
         body["transactions"] = [];
-        
-        
-        var date_separator1 = [];
-        rows.forEach(function(element, index) {
-            months.forEach(function(month){
-                if(element.includes(month)){
-                    date_separator1.push(index);
-                    return true;
-                }
-            });
-        });
-
-        body["tx_count_found"] = date_separator1.length / 2;
-        for(var i = 0; i < date_separator1.length - 1; i += 2){
-            j = date_separator1[i];
-            var arr1 = rows[j].split(" ");
-            var d = new Date();
-            var date = d.getUTCFullYear() + '-' + getMonthFromString(arr1[1], months) + '-' + arr1[0];
-            var amount_text = rows[j + 4].split(" ")[0];
-            var amount_text1 = amount_text.replace(/./g, "");
-            var amount_text2 = amount_text1.replace(/,/g, ".");
-            var amount = parseFloat(amount_text2);
-            var type = "UNDEFINED";
-            if(amount === null){
-                body["warning_count"] ++;
-                var d = new Date();
-                var warning = {
-                    "timestamp": ISODateString(d),
-                    "row" : j + 5,
-                    "type": "Warning",
-                    "message": "Expected amount but found '" + rows[j + 4] + "'."
-                }
-                body["warnings"].push(warning);
-            }else{
-                if(amount < 0){
-                    type = "CREDIT";
-                    body["tx_count_credit"] ++;
-                }else{
-                    type = "DEBIT";
-                    body["tx_count_debit"] ++;
-                }
-            }
-
-            var transaction = {
-                "type": type,
-                "date": date,
-                "description": rows[j + 2],
-                "amount": amount,
-            }
-
-            var payee = "";
-            if(rows[j + 5] === "DESCRIZIONE"){
-                payee = rows[j + 6];
-            }else{
-                body["warning_count"] ++;
-                var d = new Date();
-                var warning = {
-                    "timestamp": ISODateString(d),
-                    "row" : j + 6,
-                    "type": "Warning",
-                    "message": "Expected DESCRIZIONE but found '" + rows[j + 5] + "'."
-                }
-                body["warnings"].push(warning);
-            }
-
-            var record_date = "";
-            if(rows[j + 8] === "DATA DELLA CONTABILIZZAZIONE"){
-                arr1 = rows[j + 9].split(" ");
-                record_date = arr1[2] + '-' + getMonthFromString(arr1[1], months) + '-' + arr1[0];
-                transaction["record_date"] = record_date;
-            }else{
-                body["transactions"].push(transaction);
+        var row_index = 0;
+        var start_pattern = /^([0-9]{2}) (gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)$/;
+        var date_pattern = /^([0-9]{2}) (gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre), ([0-9]{4})$/i;
+        var transaction = {};
+        while(row_index < rows.length){
+            if(rows[row_index] === ""){
+                row_index++;
                 continue;
             }
-
-            var transaction_id = "";
-            if(rows[j + 11] === "NUMERO DI RIFERIMENTO"){
-                transaction_id = rows[j + 12];
-                transaction["transaction_id"] = transaction_id;
-            }else{
-                body["transactions"].push(transaction);
-                continue;
-            }
-
-            var currency_amount = 0;
-            var currency_id = "USD";
-            if(rows[j + 14] === "DETTAGLI SULLA VALUTA ESTERA"){
-                arr1 = rows[j + 16].split(" ");
-                currency_amount = parseFloat(arr1[0].replace(/,/g, ""));
-                currency_id = arr1[1];
-                transaction["currency_amount"] = currency_amount;
-                transaction["currency_id"] = currency_id;
-            }else{
-                body["transactions"].push(transaction);
-                continue;
-            }
-            
-            var fx_commission = 0;
-            var fx_rate = 0.0;
-            if(rows[j + 17] === "Commissione"){
-                arr1 = rows[j + 18].split(" ");
-                amount_text1 = arr1[0].replace(/./g, "");
-                amount_text2 = amount_text1.replace(/,/g, ".");
-                fx_commission = parseFloat(amount_text2);
-                transaction["fx_commission"] = fx_commission;
-                if(rows[j + 19] === "Tasso di cambio"){
-                    fx_rate = parseFloat(rows[j + 20]).toFixed(6);
-                    transaction["fx_rate"] = fx_rate;
-                }else{
+            var arr = start_pattern.exec(rows[row_index]);
+            if(arr !== null){
+                body["tx_count_found"] ++;
+                if(transaction.length > 0){
                     body["transactions"].push(transaction);
-                    continue;
+                    transaction = {};
+                }
+                transaction["type"] = "UNDEFINED";
+                
+                d = new Date();
+                var mon = months.indexOf(arr[2]) + 1;
+                var yr = "";
+                if(mon < d.getUTCMonth()){
+                    mon = pad(mon);
+                    yr = d.getUTCFullYear();
+                }else{
+                    mon = pad(mon);
+                    yr = d.getUTCFullYear() - 1;
+                }
+                transaction["date"] = yr + '-' + mon + '-' + arr[1];
+                row_index += 2;
+                transaction["description"] = rows[row_index];
+                row_index += 2;
+                transaction["amount"] = amountFormatter(rows[row_index]);
+                
+                if(amount >= 0){
+                    transaction["type"] = "DEBIT";
+                    transaction["tx_count_debit"] ++;
+                }else{
+                    transaction["type"] = "CREDIT";
+                    transaction["tx_count_credit"] ++;
+                }
+
+                if(rows[row_index + 1] !== "DESCRIZIONE"){
+                    body["warning_count"] ++;
+                    var d = new Date();
+                    var warning = {
+                        "timestamp": ISODateString(d),
+                        "row" : row_index + 2,
+                        "type": "Warning",
+                        "message": "Expected DESCRIZIONE but found '" + rows[j + 5] + "'."
+                    }
+                    body["warnings"].push(warning);
                 }
                 
+                row_index ++;
             }else{
-                body["transactions"].push(transaction);
-                continue;
+                switch(delimiters_map.get(rows[row_index])){
+                    case "payee": 
+                        transaction["payee"] = rows[++row_index];
+                        break;
+                    case "record_date": {
+                        var arr = date_pattern.exec(rows[++row_index]);
+                        transaction["record_date"] = arr[3] + '-' + pad(months.indexOf(arr[2]) + 1) + '-' + arr[1];
+                        break;
+                    }
+                    case "transaction_id":
+                        transaction["transaction_id"] = rows[++row_index];
+                        break;
+                    case "currency_info":
+                        row_index++;
+                        break;
+                    case "currency_amount": {
+                        var arr = rows[row_index++].split(" ");
+                        transaction["currency_amount"] = parseFloat(arr[0]);
+                        transaction["currency_id"] = arr[1];
+                        break;
+                    }
+                    case "fx_commission": 
+                        trasaction["fx_commission"] = amountFormatter(rows[++row_index]);
+                        break;
+                    case "fx_rate":
+                        transaction["fx_rate"] = parseFloat(rows[++row_index]).toFixed(6);
+                        break;
+                    default: row_index ++; break;
+                }
             }
         }
-
+        
+        if(transaction.length >= 0){
+            body["transactions"].push(transaction);
+            transaction = {};
+        }
+        
         
         context.res = {
             // status: 200, /* Defaults to 200 */
@@ -219,9 +194,8 @@ module.exports = async function (context, req) {
         };
     }
 };
+function pad(n){return n<10 ? '0'+n : n}
 function ISODateString(d){
-    function pad(n){return n<10 ? '0'+n : n}
-
     return d.getUTCFullYear()+'-'
          + pad(d.getUTCMonth()+1)+'-'
          + pad(d.getUTCDate())+'T'
@@ -229,22 +203,9 @@ function ISODateString(d){
          + pad(d.getUTCMinutes())+':'
          + pad(d.getUTCSeconds())+'Z'
 }
-String.prototype.replaceAt=function(index, replacement) {
-    return this.substr(0, index) + replacement+ this.substr(index + replacement.length);
+function amountFormatter(amount){
+    var arr1 = amount.split(" ");
+    amount_text1 = arr1[0].replace(/\./g, "");
+    amount_text2 = amount_text1.replace(/,/g, ".");
+    return parseFloat(amount_text2);
 }
-function getMonthFromString(str, months){
-    var m = "0";
-    months.forEach(function(element, index){
-        if(str.includes(element)){
-            if(index + 1 < 10){
-                m += (index + 1);
-                return true;
-            }else{
-                m = ""+ (index + 1);
-                return true;
-            }
-        }
-    });
-    return m;
-}
-   
