@@ -120,8 +120,8 @@ module.exports = async function (context, req) {
                 row_index += 2;
                 transaction["description"] = rows[row_index];
                 row_index += 2;
-                transaction["amount"] = amountFormatter(rows[row_index]);
-                
+                var amount = amountFormatter(rows[row_index]);
+                transaction["amount"] = amount;
                 if(amount >= 0){
                     transaction["type"] = "DEBIT";
                     transaction["tx_count_debit"] ++;
@@ -180,7 +180,7 @@ module.exports = async function (context, req) {
             body["transactions"].push(transaction);
             transaction = {};
         }
-        
+
         
         context.res = {
             // status: 200, /* Defaults to 200 */
