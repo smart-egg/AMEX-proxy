@@ -1,5 +1,5 @@
 module.exports = async function (context, req) {
-
+    
     try {
     
     var client = require('smartsheet');
@@ -23,5 +23,4 @@ module.exports = async function (context, req) {
         context.log("caught error");
         context.log(e);
     }
-        
-};
+}
