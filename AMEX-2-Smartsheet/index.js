@@ -365,7 +365,7 @@ module.exports = async function (context, req) {
             ]
         }
         rows.push(row);
-        context.push(row);
+        context.log(row);
         transactions.forEach(element => {
             row = {};
             row["toTop"] = true;
