@@ -8,13 +8,11 @@ module.exports = async function (context, req) {
     };
 
     context.log("test1");
-    smartsheet.sheets.getColumns(options)
+    await smartsheet.sheets.getColumns(options)
     .then(function(columnList) {
         context.log("get column success");
     })
     .catch(function(error) {
         context.log("get column error");
     });
-    
-        
 };
