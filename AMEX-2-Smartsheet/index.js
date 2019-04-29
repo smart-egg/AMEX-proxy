@@ -1,8 +1,12 @@
 module.exports = async function (context, req) {
     
-    try {
+
+    /****************************  Building json Body for response  ******************************************************/
     
-<<<<<<< HEAD
+    var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+    var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
+    var delimiters_map = new Map(row_delimiters);
+    
     if (req.body && req.body.filename && req.body.contents && req.body.smartsheet_id && req.body.account_name) {
         var filename = req.body.filename;
         var b = new Buffer(req.body.contents, 'base64')
@@ -417,27 +421,27 @@ module.exports = async function (context, req) {
             status: 400,
             body: "Please pass a correct parameters in the request body"
         };
-=======
-    var client = require('smartsheet');
-    var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
-    var smartsheet_id = 5744708929513348;
-    var options = {
-        sheetId: smartsheet_id
-    };
-
-    context.log("test1");
-    await smartsheet.sheets.getColumns(options)
-    .then(function(columnList) {
-        context.log("get column success");
-    })
-    .catch(function(error) {
-        context.log("get column error");
-    });
->>>>>>> 581bf5442003a809a8dfb6839b8cfe46e97a6072
     }
-    catch (e)
-    {
-        context.log("caught error");
-        context.log(e);
+};
+function pad(n){return n<10 ? '0'+n : n}
+function ISODateString(d){
+    return d.getUTCFullYear()+'-'
+         + pad(d.getUTCMonth()+1)+'-'
+         + pad(d.getUTCDate())+'T'
+         + pad(d.getUTCHours())+':'
+         + pad(d.getUTCMinutes())+':'
+         + pad(d.getUTCSeconds())+'Z'
+}
+function amountFormatter(amount){
+    var arr1 = amount.split(" ");
+    amount_text1 = arr1[0].replace(/\./g, "");
+    amount_text2 = amount_text1.replace(/,/g, ".");
+    return parseFloat(amount_text2);
+}
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
     }
+    return true;
 }
