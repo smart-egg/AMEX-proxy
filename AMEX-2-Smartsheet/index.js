@@ -199,8 +199,8 @@ module.exports = async function (context, req) {
         /****************************************  smartsheet uploading  ****************************************************************/
 
         var client = require('smartsheet');
-        //var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
-        var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
+        var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
+        // var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr"});
         var column = [
             {
             "title": "Conto",
@@ -278,14 +278,6 @@ module.exports = async function (context, req) {
             context.log(err);
           }
 
-
-        // await smartsheet.sheets.addColumn(options)
-        // .then(function(newColumns) {
-        //     context.log("add column success");
-        // })
-        // .catch(function(error) {
-        //     context.log("add column error");
-        // });
         // Set options
         var options = {
             sheetId: smartsheet_id
@@ -305,15 +297,6 @@ module.exports = async function (context, req) {
           } catch (err) {
             context.log(err);
           }
-
-        // await smartsheet.sheets.getColumns(options)
-        // .then(function(columnList) {
-        //     context.log("get column success");
-        //     col_info = columnList["data"];
-        // })
-        // .catch(function(error) {
-        //     context.log("get column error");
-        // });
 
         //building json body for adding row
         var col_info_map_array = [];
@@ -406,13 +389,6 @@ module.exports = async function (context, req) {
           } catch (err) {
             context.log(err);
           }
-        // await smartsheet.sheets.addRows(options)
-        // .then(function(newRows) {
-        //     context.log("add rows success");
-        // })
-        // .catch(function(error) {
-        //     context.log(error);
-        // });
     }
     else {
         context.res = {
