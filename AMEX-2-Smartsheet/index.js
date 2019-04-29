@@ -365,7 +365,6 @@ module.exports = async function (context, req) {
             ]
         }
         rows.push(row);
-        context.log(row);
         transactions.forEach(element => {
             row = {};
             row["toTop"] = true;
@@ -385,10 +384,9 @@ module.exports = async function (context, req) {
                     }
                     var cell = {
                         "columnId": col[1],
-                        "value": element[col_map.get(col[0])]
+                        "value": element[col_map.get(col[0])] === undefined ? "" : element[col_map.get(col[0])]
                     }
                     row["cells"].push(cell);
-                    context.log(row);
                 }
             });
             
