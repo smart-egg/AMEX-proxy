@@ -1,5 +1,7 @@
 module.exports = async function (context, req) {
 
+    try {
+    
     var client = require('smartsheet');
     var smartsheet = client.createClient({ accessToken: "txuqisuk8oadpl2nxa93v3m0hr" });
     var smartsheet_id = 5744708929513348;
@@ -8,13 +10,18 @@ module.exports = async function (context, req) {
     };
 
     context.log("test1");
-    smartsheet.sheets.getColumns(options)
+    await smartsheet.sheets.getColumns(options)
     .then(function(columnList) {
         context.log("get column success");
     })
     .catch(function(error) {
         context.log("get column error");
     });
-    
+    }
+    catch (e)
+    {
+        context.log("caught error");
+        context.log(e);
+    }
         
 };
