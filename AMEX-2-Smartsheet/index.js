@@ -270,13 +270,22 @@ module.exports = async function (context, req) {
             body: column
         };
         // Add columns to the sheet
-        await smartsheet.sheets.addColumn(options)
-        .then(function(newColumns) {
-            context.log("add column success");
-        })
-        .catch(function(error) {
-            context.log("add column error");
-        });
+
+        try {
+            newColumns = await smartsheet.sheets.addColumn(options);
+            context.log(newColumns);
+          } catch (err) {
+            context.log(err);
+          }
+
+
+        // await smartsheet.sheets.addColumn(options)
+        // .then(function(newColumns) {
+        //     context.log("add column success");
+        // })
+        // .catch(function(error) {
+        //     context.log("add column error");
+        // });
         // Set options
         var options = {
             sheetId: smartsheet_id
@@ -288,14 +297,24 @@ module.exports = async function (context, req) {
 
         // get columns from the sheet
         var col_info = [];
-        await smartsheet.sheets.getColumns(options)
-        .then(function(columnList) {
-            context.log("get column success");
+
+        try {
+            columnList = await smartsheet.sheets.getColumns(options);
+            context.log(columnList);
             col_info = columnList["data"];
-        })
-        .catch(function(error) {
-            context.log("get column error");
-        });
+          } catch (err) {
+            context.log(err);
+          }
+
+        // await smartsheet.sheets.getColumns(options)
+        // .then(function(columnList) {
+        //     context.log("get column success");
+        //     col_info = columnList["data"];
+        // })
+        // .catch(function(error) {
+        //     context.log("get column error");
+        // });
+
         //building json body for adding row
         var col_info_map_array = [];
         col_info.forEach(element => {
@@ -382,13 +401,19 @@ module.exports = async function (context, req) {
         };
             
         // Add rows to sheet
-        await smartsheet.sheets.addRows(options)
-        .then(function(newRows) {
-            context.log("add rows success");
-        })
-        .catch(function(error) {
-            context.log("add rows error");
-        });
+        try {
+            newRows = await smartsheet.sheets.addRows(options);
+            context.log(newRows);
+          } catch (err) {
+            context.log(err);
+          }
+        // await smartsheet.sheets.addRows(options)
+        // .then(function(newRows) {
+        //     context.log("add rows success");
+        // })
+        // .catch(function(error) {
+        //     context.log(error);
+        // });
     }
     else {
         context.res = {
