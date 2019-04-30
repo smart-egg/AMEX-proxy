@@ -177,7 +177,7 @@ module.exports = async function (context, req) {
                         transaction["fx_commission"] = amountFormatter(rows[++row_index]);
                         break;
                     case "fx_rate":
-                        transaction["fx_rate"] = parseFloat(rows[++row_index]).toFixed(6);
+                        transaction["fx_rate"] = parseFloat(parseFloat(rows[++row_index]).toFixed(6));
                         break;
                     default: row_index ++; break;
                 }
@@ -284,7 +284,7 @@ module.exports = async function (context, req) {
         };
         var rows = [];
         var transactions = body["transactions"];
-        var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Uscite", "amount"], ["Entrate in valuta", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
+        var map_array1 = [["Data", "date"], ["Descrizione banca", "description"], ["Descrizione", "payee"], ["Entrate", "amount"], ["Uscite", "amount"], ["Uscite in valuta", "currency_amount"], ["Valuta", "currency_id"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"], ["ID transazione", "transaction_id"]];
         var col_map = new Map(map_array1);
 
         // get columns from the sheet
@@ -318,7 +318,7 @@ module.exports = async function (context, req) {
         var today = yyyy + '-' + mm + '-' + dd;
 
         var row = {
-            "toTop": true,
+            "toBottom": true,
             "cells": [
                 {
                     "columnId": col_info[0].id,
@@ -338,19 +338,19 @@ module.exports = async function (context, req) {
                     //"value": "Expected 8, reported 7"
                 },
                 {
-                    "columnId": col_info_map.get("Uscite"),
-                    "value": debit_amount
+                    "columnId": col_info_map.get("Entrate"),
+                    "value": credit_amount
                 },
                 {
-                    "columnId": col_info_map.get("Entrate in valuta"),
-                    "value": credit_amount
+                    "columnId": col_info_map.get("Uscite"),
+                    "value": debit_amount
                 },
             ]
         }
         rows.push(row);
         transactions.forEach(element => {
             row = {};
-            row["toTop"] = true;
+            row["toBottom"] = true;
             row["cells"] = [];
             row["cells"].push({
                 "columnId": col_info_map.get("Conto"),
@@ -359,10 +359,10 @@ module.exports = async function (context, req) {
             })
             col_info_map_array.forEach((col, index, arr) => {
                 if(col_map.get(col[0]) !== undefined){
-                    if(element.type === "DEBIT" && col[0] === "Entrate in valuta"){
-                        return;
-                    }else if(element.type === "CREDIT" && col[0] === "Uscite"){
+                    if(element.type === "CREDIT" && col[0] === "Uscite"){
                         element.amount *= -1;
+                        return;
+                    }else if(element.type === "DEBIT" && col[0] === "Entrate"){
                         return;
                     }
                     var cell = {
