@@ -133,12 +133,12 @@ module.exports = async function (context, req) {
                 if(amount >= 0){
                     transaction["type"] = "DEBIT";
                     body["tx_count_debit"] ++;
-                    debit_amount += transaction["amount"];
+                    debit_amount += amount;
                     transaction["amount"] = amount;
                 }else{
                     transaction["type"] = "CREDIT";
                     body["tx_count_credit"] ++;
-                    credit_amount += transaction["amount"];
+                    credit_amount += amount * -1;
                     transaction["amount"] = amount * -1;
                 }
 
@@ -201,8 +201,8 @@ module.exports = async function (context, req) {
         /****************************************  smartsheet uploading  ****************************************************************/
 
         var client = require('smartsheet');
-        var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
-        // var smartsheet = client.createClient({ accessToken: "dkd7i6gq5ysrj25i4wbif9n4di"});
+        // var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
+        var smartsheet = client.createClient({ accessToken: "dkd7i6gq5ysrj25i4wbif9n4di"});
         var column = [
             {
             "title": "Conto",
