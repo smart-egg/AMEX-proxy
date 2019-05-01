@@ -188,6 +188,11 @@ module.exports = async function (context, req) {
         
         if(transaction.length >= 0){
             body["transactions"].push(transaction);
+            if(transaction["type"] === "CREDIT"){
+                credit_amount += transaction["amount"];
+            }else{
+                debit_amount += transaction["amount"];
+            }
             transaction = {};
         }
 
