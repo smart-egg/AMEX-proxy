@@ -140,7 +140,7 @@ module.exports = async function (context, req) {
                     credit_amount += transaction["amount"];
                 }
 
-                if(rows[row_index + 1] !== "DESCRIZIONE" && transaction["type"] === "CREDIT"){
+                if(rows[row_index + 1] !== "DESCRIZIONE" && transaction["type"] !== "CREDIT"){
                     body["warning_count"] ++;
                     var d = new Date();
                     var warning = {
