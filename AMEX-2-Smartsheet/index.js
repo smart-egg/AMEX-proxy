@@ -196,7 +196,6 @@ module.exports = async function (context, req) {
             body: body,
         };
 
-        credit_amount *= -1;
 
         /****************************************  smartsheet uploading  ****************************************************************/
 
