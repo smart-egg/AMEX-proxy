@@ -129,15 +129,17 @@ module.exports = async function (context, req) {
                 transaction["description"] = rows[row_index];
                 row_index += 2;
                 var amount = amountFormatter(rows[row_index]);
-                transaction["amount"] = amount;
+                
                 if(amount >= 0){
                     transaction["type"] = "DEBIT";
                     body["tx_count_debit"] ++;
                     debit_amount += transaction["amount"];
+                    transaction["amount"] = amount;
                 }else{
                     transaction["type"] = "CREDIT";
                     body["tx_count_credit"] ++;
                     credit_amount += transaction["amount"];
+                    transaction["amount"] = amount * -1;
                 }
 
                 if(rows[row_index + 1] !== "DESCRIZIONE" && transaction["type"] !== "CREDIT"){
