@@ -3,7 +3,9 @@ module.exports = async function (context, req) {
 
     /****************************  Building json Body for response  ******************************************************/
     
+    // This is used to convert italian month names to number.
     var months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+    // This is used to map the blocks found in the file with the fields in the response transaction object.
     var row_delimiters = [["DESCRIZIONE", "payee"], ["DATA DELLA CONTABILIZZAZIONE", "record_date"], ["NUMERO DI RIFERIMENTO", "transaction_id"], ["DETTAGLI SULLA VALUTA ESTERA", "currency_info"], ["Commissione", "fx_commission"], ["Tasso di cambio", "fx_rate"]];
     var delimiters_map = new Map(row_delimiters);
     
@@ -36,6 +38,8 @@ module.exports = async function (context, req) {
         var debit_amount = 0;
         var credit_amount = 0;
         var rows = contents.split(/\r?\n/);
+
+        // Check for first row content.
         if(rows[0] !== "Cosa sono le transazioni contabilizzate ?"){
             body["warning_count"] ++;
             var d = new Date();
@@ -48,7 +52,7 @@ module.exports = async function (context, req) {
             body["warnings"].push(warning);
         }
         
-        
+        // Check for last row content and number of transaction reported.
         var last_row = rows[rows.length - 1];
         var regex = /^1-([0-9]{1,3}) of ([0-9]{1,3}) Transazioni/g;
         var arr = regex.exec(last_row);
@@ -64,9 +68,11 @@ module.exports = async function (context, req) {
             body["warnings"].push(warning);
         }
         else{
+            // Last row is correct. Save transaction counts in response body.
             body["tx_count_expected"] = arr[2];
             body["tx_count_reported"] = arr[1];
             if(arr[1] !== arr[2]){
+                // Logging report count mismatch.
                 body["warning_count"] ++;
                 var d = new Date();
                 var warning = {
@@ -78,6 +84,7 @@ module.exports = async function (context, req) {
                 body["warnings"].push(warning);
             }
             else{
+                // Reported = Expected so all is OK.
                 body["info_count"] ++;
                 var d = new Date();
                 var info = {
@@ -91,39 +98,52 @@ module.exports = async function (context, req) {
         }
         
         
-        
+        // Starts main loop.
         body["tx_count_found"] = 0;
         body["tx_count_credit"] = 0;
         body["tx_count_debit"] = 0;
         body["transactions"] = [];
         var row_index = 0;
+        // Pattern used to detect start of the block.
         var start_pattern = /^([0-9]{2}) (gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)$/;
+        // Pattern used to extract the date from 
         var date_pattern = /^([0-9]{2}) (gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre), ([0-9]{4})$/i;
         var transaction = {};
+        // Loop on all rows.
         while(row_index < rows.length){
+            // Skip empty rows but keep counting them.
             if(rows[row_index] === ""){
                 row_index++;
                 continue;
             }
+            // Check for start of block
             var arr = start_pattern.exec(rows[row_index]);
             if(arr !== null){
+                // This is the first row of a block.
+                // Process the first row of a block, with date, description and amount.
                 body["tx_count_found"] ++;
+                // Save the transaction that was build in the previous iteration.
                 if(!isEmpty(transaction)){
                     body["transactions"].push(transaction);
                     transaction = {};
                 }
+                // Set default transaction type.
                 transaction["type"] = "UNDEFINED";
                 
+                // Extract the date of the transaction.
                 d = new Date();
                 var mon = months.indexOf(arr[2]) + 1;
                 var yr = "";
-                if(mon < d.getUTCMonth()){
+                // Calculate transaction year.
+                if(mon >= d.getUTCMonth()){
                     mon = pad(mon);
                     yr = d.getUTCFullYear();
                 }else{
                     mon = pad(mon);
                     yr = d.getUTCFullYear() - 1;
                 }
+                // Store transaction date, description and amount.
+                // Assuming there is one empty row after date and description.
                 transaction["date"] = yr + '-' + mon + '-' + arr[1];
                 row_index += 2;
                 transaction["description"] = rows[row_index];
@@ -156,6 +176,8 @@ module.exports = async function (context, req) {
                 
                 row_index ++;
             }else{
+                // Process the second part of the block with optional fields.
+                // Fields are processed if they are found in the map defined at the beginning of the code.
                 switch(delimiters_map.get(rows[row_index])){
                     case "payee": 
                         transaction["payee"] = rows[++row_index];
@@ -201,7 +223,6 @@ module.exports = async function (context, req) {
 
         var client = require('smartsheet');
         var smartsheet = client.createClient({ accessToken: process.env["smartsheets_token"] });
-        // var smartsheet = client.createClient({ accessToken: "dkd7i6gq5ysrj25i4wbif9n4di"});
         var column = [
             {
             "title": "Conto",
