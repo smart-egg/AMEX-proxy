@@ -135,7 +135,7 @@ module.exports = async function (context, req) {
                 var mon = months.indexOf(arr[2]) + 1;
                 var yr = "";
                 // Calculate transaction year.
-                if(mon >= d.getUTCMonth()){
+                if(mon < d.getUTCMonth() + 1){
                     mon = pad(mon);
                     yr = d.getUTCFullYear();
                 }else{
