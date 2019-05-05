@@ -227,7 +227,7 @@ module.exports = async function (context, req) {
             {
             "title": "Conto",
             "type": "TEXT_NUMBER",
-            "index": 1
+            "index": 1 // 1 for standard column, 0 for primary column.
             },
             {
             "title": "Data",
@@ -322,7 +322,8 @@ module.exports = async function (context, req) {
             context.log(err);
           }
 
-        //building json body for adding row
+        //building json body for adding row.
+        // Creating a map of column title, id for the smartsheet.
         var col_info_map_array = [];
         col_info.forEach(element => {
             col_info_map_array.push([element.title, element.id]);
