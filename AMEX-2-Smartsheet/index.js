@@ -297,6 +297,8 @@ module.exports = async function (context, req) {
             newColumns = await smartsheet.sheets.addColumn(options);
             context.log(newColumns);
           } catch (err) {
+              // An error 400 is risen if columns are already existing.
+              // Message will be 'Column titles must be unique.'
             context.log(err);
           }
 
